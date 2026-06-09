@@ -29,4 +29,5 @@ Thumbs.db
 # Temporary files
 tmp/
 temp/
-rice_iot_server/
+
+rice_iot_sever/
