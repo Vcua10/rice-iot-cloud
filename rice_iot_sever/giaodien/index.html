@@ -1,0 +1,383 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Hệ thống phân loại bệnh cây lúa</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: Arial, Helvetica, sans-serif;
+    }
+
+    body {
+      min-height: 100vh;
+      background:
+        linear-gradient(rgba(8, 35, 15, 0.55), rgba(8, 35, 15, 0.55)),
+        url("/static/images/rice-bg.jpg") center center / cover no-repeat fixed;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 24px;
+    }
+
+    .wrapper {
+      width: 100%;
+      max-width: 1150px;
+    }
+
+    .hero {
+      text-align: center;
+      color: #fff;
+      margin-bottom: 22px;
+    }
+
+    .hero h1 {
+      font-size: 38px;
+      font-weight: 700;
+      margin-bottom: 10px;
+      text-shadow: 0 3px 8px rgba(0,0,0,0.35);
+    }
+
+    .hero p {
+      font-size: 17px;
+      opacity: 0.95;
+      text-shadow: 0 2px 6px rgba(0,0,0,0.3);
+    }
+
+    .main-card {
+      background: rgba(255,255,255,0.14);
+      border: 1px solid rgba(255,255,255,0.25);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+      border-radius: 24px;
+      box-shadow: 0 20px 50px rgba(0,0,0,0.25);
+      overflow: hidden;
+    }
+
+    .content {
+      display: grid;
+      grid-template-columns: 1.05fr 0.95fr;
+      gap: 24px;
+      padding: 28px;
+    }
+
+    .panel {
+      background: rgba(255,255,255,0.88);
+      border-radius: 20px;
+      padding: 22px;
+      box-shadow: 0 8px 20px rgba(0,0,0,0.08);
+    }
+
+    .panel h2 {
+      font-size: 24px;
+      color: #1b5e20;
+      margin-bottom: 16px;
+    }
+
+    .subtext {
+      color: #5b5b5b;
+      font-size: 14px;
+      margin-bottom: 16px;
+      line-height: 1.5;
+    }
+
+    .upload-zone {
+      border: 2px dashed #7cb342;
+      border-radius: 18px;
+      background: #f7fff4;
+      padding: 20px;
+      text-align: center;
+    }
+
+    .upload-zone input[type="file"] {
+      width: 100%;
+      margin-top: 14px;
+      padding: 10px;
+      background: #fff;
+      border: 1px solid #d5e9d0;
+      border-radius: 12px;
+      cursor: pointer;
+    }
+
+    .preview-box {
+      margin-top: 18px;
+      border-radius: 16px;
+      overflow: hidden;
+      border: 1px solid #dfe8dc;
+      background: #fff;
+      min-height: 280px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .preview-box img {
+      max-width: 100%;
+      max-height: 320px;
+      display: none;
+    }
+
+    .preview-placeholder {
+      color: #888;
+      font-size: 15px;
+      padding: 30px;
+      text-align: center;
+    }
+
+    .btn {
+      width: 100%;
+      margin-top: 18px;
+      padding: 14px 18px;
+      font-size: 16px;
+      font-weight: 700;
+      color: white;
+      background: linear-gradient(135deg, #2e7d32, #66bb6a);
+      border: none;
+      border-radius: 14px;
+      cursor: pointer;
+      transition: 0.25s ease;
+      box-shadow: 0 8px 18px rgba(46, 125, 50, 0.25);
+    }
+
+    .btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 12px 24px rgba(46, 125, 50, 0.32);
+    }
+
+    .loading {
+      display: none;
+      margin-top: 14px;
+      color: #1b5e20;
+      font-weight: bold;
+      text-align: center;
+    }
+
+    .error {
+      margin-top: 12px;
+      color: #c62828;
+      font-weight: 600;
+      text-align: center;
+    }
+
+    .result-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 14px;
+      margin-top: 8px;
+    }
+
+    .result-item {
+      background: #ffffff;
+      border-radius: 16px;
+      padding: 16px 18px;
+      border-left: 6px solid #43a047;
+      box-shadow: 0 6px 16px rgba(0,0,0,0.05);
+    }
+
+    .result-label {
+      font-size: 13px;
+      color: #666;
+      margin-bottom: 6px;
+    }
+
+    .result-value {
+      font-size: 22px;
+      font-weight: 700;
+      color: #1b1b1b;
+      word-break: break-word;
+    }
+
+    .result-note {
+      margin-top: 16px;
+      padding: 16px;
+      border-radius: 16px;
+      background: #eef9ee;
+      border: 1px solid #cce7cc;
+      color: #1b5e20;
+      font-size: 15px;
+      line-height: 1.5;
+    }
+
+    .badge {
+      display: inline-block;
+      padding: 8px 14px;
+      border-radius: 999px;
+      font-size: 14px;
+      font-weight: 700;
+    }
+
+    .healthy {
+      background: #dff5df;
+      color: #1b7f2a;
+    }
+
+    .disease {
+      background: #fde2e2;
+      color: #c62828;
+    }
+
+    .footer-note {
+      margin-top: 18px;
+      color: #355c38;
+      font-size: 13px;
+      text-align: center;
+    }
+
+    @media (max-width: 900px) {
+      .content {
+        grid-template-columns: 1fr;
+      }
+
+      .hero h1 {
+        font-size: 30px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="wrapper">
+    <div class="hero">
+      <h1>Hệ thống phân loại bệnh cây lúa</h1>
+      <p>Ứng dụng AI và IoT trong nhận diện bệnh lá lúa qua hình ảnh</p>
+    </div>
+
+    <div class="main-card">
+      <div class="content">
+        <!-- Upload panel -->
+        <div class="panel">
+          <h2>Tải ảnh lá lúa</h2>
+          <p class="subtext">
+            Chọn ảnh lá lúa từ máy tính để hệ thống phân tích và dự đoán bệnh.
+          </p>
+
+          <div class="upload-zone">
+            <input type="file" id="fileInput" accept="image/*">
+
+            <div class="preview-box">
+              <img id="previewImage" alt="Preview image">
+              <div class="preview-placeholder" id="previewPlaceholder">
+                Chưa có ảnh được chọn
+              </div>
+            </div>
+
+            <button class="btn" onclick="predictImage()">Phân loại bệnh</button>
+            <div class="loading" id="loadingText">Đang phân tích ảnh, vui lòng chờ...</div>
+            <div class="error" id="errorText"></div>
+          </div>
+
+          <div class="footer-note">
+            Hỗ trợ phân loại 6 lớp bệnh: bacterial_leaf_blight, brown_spot, healthy, leaf_blast, leaf_scald, sheath_blight
+          </div>
+        </div>
+
+        <!-- Result panel -->
+        <div class="panel">
+          <h2>Kết quả phân loại</h2>
+          <p class="subtext">
+            Kết quả dự đoán của mô hình AI sẽ hiển thị ở đây.
+          </p>
+
+          <div class="result-grid">
+            <div class="result-item">
+              <div class="result-label">Tên lớp dự đoán</div>
+              <div class="result-value" id="className">---</div>
+            </div>
+
+            <div class="result-item">
+              <div class="result-label">Tên bệnh tiếng Việt</div>
+              <div class="result-value" id="message">---</div>
+            </div>
+
+            <div class="result-item">
+              <div class="result-label">Độ tin cậy</div>
+              <div class="result-value" id="confidence">---%</div>
+            </div>
+
+            <div class="result-item">
+              <div class="result-label">Trạng thái</div>
+              <div class="result-value">
+                <span class="badge healthy" id="statusText">Chưa phân tích</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="result-note" id="resultNote">
+            Vui lòng chọn ảnh lá lúa và nhấn nút "Phân loại bệnh" để xem kết quả.
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const fileInput = document.getElementById("fileInput");
+    const previewImage = document.getElementById("previewImage");
+    const previewPlaceholder = document.getElementById("previewPlaceholder");
+    const loadingText = document.getElementById("loadingText");
+    const errorText = document.getElementById("errorText");
+
+    fileInput.addEventListener("change", function () {
+      const file = this.files[0];
+      if (file) {
+        previewImage.src = URL.createObjectURL(file);
+        previewImage.style.display = "block";
+        previewPlaceholder.style.display = "none";
+        errorText.textContent = "";
+      }
+    });
+
+    async function predictImage() {
+      const file = fileInput.files[0];
+
+      if (!file) {
+        errorText.textContent = "Vui lòng chọn ảnh trước khi phân loại.";
+        return;
+      }
+
+      loadingText.style.display = "block";
+      errorText.textContent = "";
+
+      const formData = new FormData();
+      formData.append("file", file);
+
+      try {
+        const response = await fetch("/predict", {
+          method: "POST",
+          body: formData
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+          throw new Error(data.error || "Có lỗi xảy ra khi phân loại ảnh.");
+        }
+
+        document.getElementById("className").textContent = data.class_name;
+        document.getElementById("message").textContent = data.message;
+        document.getElementById("confidence").textContent = data.confidence_percent + "%";
+
+        const statusText = document.getElementById("statusText");
+        const resultNote = document.getElementById("resultNote");
+
+        if (data.class_name === "healthy") {
+          statusText.textContent = "Lá khỏe mạnh";
+          statusText.className = "badge healthy";
+          resultNote.textContent = "Hệ thống nhận định đây là lá lúa khỏe mạnh, chưa phát hiện dấu hiệu bệnh.";
+        } else {
+          statusText.textContent = "Phát hiện bệnh";
+          statusText.className = "badge disease";
+          resultNote.textContent = "Hệ thống đã phát hiện bệnh trên lá lúa. Cần kiểm tra thực tế và có biện pháp xử lý phù hợp.";
+        }
+
+      } catch (error) {
+        errorText.textContent = "Lỗi: " + error.message;
+      } finally {
+        loadingText.style.display = "none";
+      }
+    }
+  </script>
+</body>
+</html>
