@@ -21,10 +21,10 @@ os.makedirs(STATIC_DIR, exist_ok=True)
 templates = Jinja2Templates(directory=TEMPLATE_DIR)
 app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
 
-# ==================== LOAD MODEL YOLO ====================
+# ==================== LOAD MODEL ====================
 model = YOLO(MODEL_PATH)
 
-# ==================== KẾT QUẢ MỚI NHẤT CHO ESP32 ====================
+# ==================== LƯU KẾT QUẢ MỚI NHẤT ====================
 latest_result = {
     "class_name": "",
     "message": "Chua co ket qua",
@@ -33,16 +33,15 @@ latest_result = {
     "confidence_percent": 0
 }
 
-# Chế độ điều khiển LED:
+# Chế độ LED:
 # auto = tự động theo AI
-# on   = bật cảnh báo đỏ thủ công
+# on   = bật cảnh báo đỏ
 # off  = tắt tất cả LED
 led_control = {
     "mode": "auto"
 }
 
-# ==================== ÁNH XẠ TÊN BỆNH ====================
-# Hiển thị trên web/app: tiếng Việt có dấu
+# ==================== TÊN BỆNH HIỂN THỊ WEB ====================
 message_map = {
     "bacterial_leaf_blight": "Bệnh bạc lá",
     "brown_spot": "Bệnh đốm nâu",
@@ -52,18 +51,18 @@ message_map = {
     "sheath_blight": "Bệnh khô vằn"
 }
 
-# Hiển thị trên OLED: không dấu để tránh lỗi font
+# ==================== TÊN BỆNH HIỂN THỊ OLED ====================
 oled_message_map = {
-    "bacterial_leaf_blight": "Bạc lá",
-    "brown_spot": "Đốm nâu",
-    "healthy": "Khỏe mạnh",
-    "leaf_blast": "Đạo ôn lá",
-    "leaf_scald": "Cháy bờ lá",
-    "sheath_blight": "Khô vằn"
+    "bacterial_leaf_blight": "Bac La",
+    "brown_spot": "Dom Nau",
+    "healthy": "Khoe Manh",
+    "leaf_blast": "Dao On",
+    "leaf_scald": "Chay Bo La",
+    "sheath_blight": "Kho Van"
 }
 
 
-# ==================== WEB GIAO DIỆN CŨ ====================
+# ==================== TRANG WEB CŨ ====================
 @app.get("/")
 def home(request: Request):
     return templates.TemplateResponse("index.html", {"request": request})
@@ -94,7 +93,7 @@ def set_led_mode(mode: str):
     }
 
 
-# ==================== API DỰ ĐOÁN AI ====================
+# ==================== API AI PHÂN TÍCH ẢNH ====================
 @app.post("/predict")
 async def predict(file: UploadFile = File(...)):
     global latest_result
@@ -167,7 +166,7 @@ async def predict(file: UploadFile = File(...)):
         )
 
 
-# ==================== APP WEB ĐIỆN THOẠI / LAPTOP ====================
+# ==================== APP WEB ====================
 @app.get("/app", response_class=HTMLResponse)
 def mobile_app():
     return """
@@ -317,20 +316,35 @@ def mobile_app():
         button {
             width: 100%;
             padding: 16px;
-            margin-top: 16px;
+            margin-top: 14px;
             border: none;
             border-radius: 16px;
             color: white;
             font-size: 18px;
             font-weight: bold;
             cursor: pointer;
-            background: linear-gradient(135deg, #22c55e, #2563eb);
             box-shadow: 0 12px 24px rgba(37, 99, 235, 0.25);
         }
 
         button:disabled {
             opacity: 0.65;
             cursor: not-allowed;
+        }
+
+        .btn-analyze {
+            background: linear-gradient(135deg, #22c55e, #2563eb);
+        }
+
+        .btn-off {
+            background: linear-gradient(135deg, #64748b, #334155);
+        }
+
+        .btn-on {
+            background: linear-gradient(135deg, #ef4444, #b91c1c);
+        }
+
+        .btn-auto {
+            background: linear-gradient(135deg, #22c55e, #2563eb);
         }
 
         .status {
@@ -385,7 +399,7 @@ def mobile_app():
     <div class="container">
         <div class="header">
             <h1>Rice AI IoT App</h1>
-            <p>Nhận diện bệnh cây lúa bằng AI và hiển thị kết quả lên ESP32 OLED</p>
+            <p>Nhận diện bệnh cây lúa bằng AI, hiển thị kết quả lên ESP32 OLED và điều khiển LED cảnh báo</p>
             <div class="badge" id="serverBadge">Đang kết nối Cloud...</div>
         </div>
 
@@ -412,7 +426,24 @@ def mobile_app():
                 <span class="value" id="aiStatus">Chưa phân tích</span>
             </div>
 
+            <div class="result-row">
+                <span class="label">Chế độ LED</span>
+                <span class="value" id="ledMode">auto</span>
+            </div>
+
             <div class="status" id="statusText">Đang tải dữ liệu...</div>
+        </div>
+
+        <div class="card">
+            <h2>Điều khiển đèn LED</h2>
+
+            <button class="btn-off" onclick="setLed('off')">TẮT TẤT CẢ LED</button>
+            <button class="btn-on" onclick="setLed('on')">BẬT CẢNH BÁO ĐỎ</button>
+            <button class="btn-auto" onclick="setLed('auto')">AUTO THEO AI</button>
+
+            <div class="status" id="ledStatus">
+                Chế độ LED hiện tại: auto
+            </div>
         </div>
 
         <div class="card">
@@ -425,7 +456,7 @@ def mobile_app():
                     <img id="previewImage" src="" alt="Ảnh xem trước">
                 </div>
 
-                <button id="analyzeButton" onclick="uploadImage()">PHÂN TÍCH ẢNH</button>
+                <button class="btn-analyze" id="analyzeButton" onclick="uploadImage()">PHÂN TÍCH ẢNH</button>
 
                 <div class="status" id="uploadStatus">
                     Chọn hoặc chụp ảnh lá lúa để gửi lên Cloud AI.
@@ -459,12 +490,16 @@ def mobile_app():
 
         function updateResultUI(data) {
             const disease = data.web_message || data.message || 'Chưa có kết quả';
-            const className = data.class_name || '---';
+            const className = data.class_name || '';
             const confidence = data.confidence_percent || 0;
+            const ledMode = data.led_mode || 'auto';
 
             document.getElementById('disease').innerText = disease;
-            document.getElementById('className').innerText = className;
+            document.getElementById('className').innerText = className || '---';
             document.getElementById('confidence').innerText = confidence + '%';
+            document.getElementById('ledMode').innerText = ledMode;
+            document.getElementById('ledStatus').innerText =
+                'Chế độ LED hiện tại: ' + ledMode;
 
             const aiStatus = document.getElementById('aiStatus');
 
@@ -496,6 +531,28 @@ def mobile_app():
                 document.getElementById('statusText').className = 'status error';
 
                 document.getElementById('serverBadge').innerText = 'Cloud lỗi kết nối';
+            }
+        }
+
+        async function setLed(mode) {
+            try {
+                const res = await fetch('/led/' + mode, {
+                    method: 'POST'
+                });
+
+                const data = await res.json();
+
+                if (res.ok) {
+                    document.getElementById('ledStatus').innerText =
+                        'Chế độ LED hiện tại: ' + data.led_mode;
+                    await loadStatus();
+                } else {
+                    document.getElementById('ledStatus').innerText =
+                        'Lỗi điều khiển LED';
+                }
+            } catch (err) {
+                document.getElementById('ledStatus').innerText =
+                    'Không gửi được lệnh LED';
             }
         }
 
