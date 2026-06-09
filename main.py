@@ -54,12 +54,12 @@ message_map = {
 
 # Hiển thị trên OLED: không dấu để tránh lỗi font
 oled_message_map = {
-    "bacterial_leaf_blight": "Bac La",
-    "brown_spot": "Dom Nau",
-    "healthy": "Khoe Manh",
-    "leaf_blast": "Dao On",
-    "leaf_scald": "Chay Bo La",
-    "sheath_blight": "Kho Van"
+    "bacterial_leaf_blight": "Bạc lá",
+    "brown_spot": "Đốm nâu",
+    "healthy": "Khỏe mạnh",
+    "leaf_blast": "Đạo ôn lá",
+    "leaf_scald": "Cháy bờ lá",
+    "sheath_blight": "Khô vằn"
 }
 
 
@@ -178,171 +178,329 @@ def mobile_app():
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Rice AI IoT App</title>
     <style>
+        * {
+            box-sizing: border-box;
+        }
+
         body {
             margin: 0;
             font-family: Arial, sans-serif;
-            background: #0f172a;
+            background:
+                linear-gradient(rgba(15, 23, 42, 0.82), rgba(15, 23, 42, 0.9)),
+                url('/static/images/rice-bg.jpg');
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
             color: white;
         }
 
         .container {
-            max-width: 480px;
+            width: 100%;
+            max-width: 560px;
             margin: auto;
-            padding: 20px;
+            padding: 24px 16px 40px;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 24px;
+        }
+
+        .header h1 {
+            margin: 0;
+            font-size: 32px;
+            font-weight: 800;
+        }
+
+        .header p {
+            margin: 10px 0 0;
+            color: #dbeafe;
+            font-size: 16px;
+        }
+
+        .badge {
+            display: inline-block;
+            margin-top: 14px;
+            padding: 8px 14px;
+            border-radius: 999px;
+            background: rgba(34, 197, 94, 0.16);
+            color: #86efac;
+            font-size: 14px;
+            font-weight: bold;
+            border: 1px solid rgba(134, 239, 172, 0.35);
         }
 
         .card {
-            background: #1e293b;
-            border-radius: 18px;
-            padding: 20px;
-            margin-bottom: 16px;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+            background: rgba(30, 41, 59, 0.94);
+            border: 1px solid rgba(148, 163, 184, 0.18);
+            border-radius: 22px;
+            padding: 22px;
+            margin-bottom: 18px;
+            box-shadow: 0 18px 40px rgba(0,0,0,0.28);
+            backdrop-filter: blur(8px);
         }
 
-        h1 {
-            text-align: center;
-            font-size: 26px;
-            margin-bottom: 6px;
+        .card h2 {
+            margin: 0 0 18px;
+            font-size: 24px;
         }
 
-        .subtitle {
-            text-align: center;
-            color: #cbd5e1;
-            margin-bottom: 20px;
+        .result-row {
+            display: flex;
+            justify-content: space-between;
+            gap: 12px;
+            padding: 12px 0;
+            border-bottom: 1px solid rgba(148, 163, 184, 0.16);
+            font-size: 17px;
         }
 
-        .result {
-            font-size: 18px;
-            line-height: 1.8;
+        .result-row:last-child {
+            border-bottom: none;
         }
 
         .label {
-            color: #94a3b8;
+            color: #cbd5e1;
         }
 
         .value {
+            text-align: right;
             font-weight: bold;
             color: #facc15;
         }
 
-        button {
-            width: 100%;
-            padding: 16px;
-            margin-top: 10px;
-            border: none;
-            border-radius: 14px;
-            color: white;
-            font-size: 17px;
-            font-weight: bold;
-        }
-
-        .btn-auto {
-            background: #2563eb;
-        }
-
-        .btn-on {
-            background: #dc2626;
-        }
-
-        .btn-off {
-            background: #16a34a;
-        }
-
-        .btn-upload {
-            background: #9333ea;
-        }
-
-        input[type="file"] {
-            width: 100%;
-            margin-top: 12px;
-            padding: 12px;
-            background: #334155;
-            border-radius: 12px;
-            color: white;
-        }
-
-        .status {
-            margin-top: 12px;
-            color: #cbd5e1;
-            font-size: 15px;
-            text-align: center;
-        }
-
-        .ok {
+        .healthy {
             color: #22c55e;
-        }
-
-        .warning {
-            color: #facc15;
         }
 
         .danger {
             color: #ef4444;
         }
+
+        .neutral {
+            color: #facc15;
+        }
+
+        .upload-box {
+            border: 2px dashed rgba(147, 197, 253, 0.35);
+            border-radius: 18px;
+            padding: 18px;
+            background: rgba(15, 23, 42, 0.42);
+        }
+
+        input[type="file"] {
+            width: 100%;
+            padding: 14px;
+            border-radius: 14px;
+            border: none;
+            background: #334155;
+            color: white;
+            font-size: 15px;
+        }
+
+        .preview {
+            width: 100%;
+            margin-top: 16px;
+            display: none;
+            border-radius: 16px;
+            overflow: hidden;
+            background: #020617;
+            border: 1px solid rgba(148, 163, 184, 0.25);
+        }
+
+        .preview img {
+            width: 100%;
+            display: block;
+            max-height: 360px;
+            object-fit: contain;
+        }
+
+        button {
+            width: 100%;
+            padding: 16px;
+            margin-top: 16px;
+            border: none;
+            border-radius: 16px;
+            color: white;
+            font-size: 18px;
+            font-weight: bold;
+            cursor: pointer;
+            background: linear-gradient(135deg, #22c55e, #2563eb);
+            box-shadow: 0 12px 24px rgba(37, 99, 235, 0.25);
+        }
+
+        button:disabled {
+            opacity: 0.65;
+            cursor: not-allowed;
+        }
+
+        .status {
+            margin-top: 14px;
+            text-align: center;
+            color: #cbd5e1;
+            font-size: 15px;
+            min-height: 22px;
+        }
+
+        .status.ok {
+            color: #22c55e;
+        }
+
+        .status.warning {
+            color: #facc15;
+        }
+
+        .status.error {
+            color: #ef4444;
+        }
+
+        .footer {
+            text-align: center;
+            color: #94a3b8;
+            font-size: 13px;
+            margin-top: 20px;
+        }
+
+        @media (max-width: 480px) {
+            .header h1 {
+                font-size: 27px;
+            }
+
+            .card {
+                padding: 18px;
+                border-radius: 18px;
+            }
+
+            .result-row {
+                font-size: 15px;
+            }
+
+            button {
+                font-size: 16px;
+            }
+        }
     </style>
 </head>
+
 <body>
     <div class="container">
-        <h1>Rice AI IoT App</h1>
-        <div class="subtitle">Nhận diện bệnh cây lúa + điều khiển LED</div>
+        <div class="header">
+            <h1>Rice AI IoT App</h1>
+            <p>Nhận diện bệnh cây lúa bằng AI và hiển thị kết quả lên ESP32 OLED</p>
+            <div class="badge" id="serverBadge">Đang kết nối Cloud...</div>
+        </div>
 
         <div class="card">
             <h2>Kết quả AI</h2>
-            <div class="result">
-                <div><span class="label">Bệnh:</span> <span class="value" id="disease">---</span></div>
-                <div><span class="label">Class:</span> <span id="className">---</span></div>
-                <div><span class="label">Độ tin cậy:</span> <span id="confidence">0%</span></div>
-                <div><span class="label">Chế độ LED:</span> <span id="ledMode">auto</span></div>
+
+            <div class="result-row">
+                <span class="label">Tên bệnh</span>
+                <span class="value" id="disease">---</span>
             </div>
+
+            <div class="result-row">
+                <span class="label">Class AI</span>
+                <span class="value" id="className">---</span>
+            </div>
+
+            <div class="result-row">
+                <span class="label">Độ tin cậy</span>
+                <span class="value" id="confidence">0%</span>
+            </div>
+
+            <div class="result-row">
+                <span class="label">Trạng thái</span>
+                <span class="value" id="aiStatus">Chưa phân tích</span>
+            </div>
+
             <div class="status" id="statusText">Đang tải dữ liệu...</div>
         </div>
 
         <div class="card">
-            <h2>Điều khiển LED</h2>
-            <button class="btn-off" onclick="setLed('off')">TẮT TẤT CẢ LED</button>
-            <button class="btn-on" onclick="setLed('on')">BẬT CẢNH BÁO ĐỎ</button>
-            <button class="btn-auto" onclick="setLed('auto')">AUTO THEO AI</button>
+            <h2>Gửi ảnh lá lúa</h2>
+
+            <div class="upload-box">
+                <input id="imageInput" type="file" accept="image/*" capture="environment">
+
+                <div class="preview" id="previewBox">
+                    <img id="previewImage" src="" alt="Ảnh xem trước">
+                </div>
+
+                <button id="analyzeButton" onclick="uploadImage()">PHÂN TÍCH ẢNH</button>
+
+                <div class="status" id="uploadStatus">
+                    Chọn hoặc chụp ảnh lá lúa để gửi lên Cloud AI.
+                </div>
+            </div>
         </div>
 
-        <div class="card">
-            <h2>Gửi ảnh lên AI</h2>
-            <input id="imageInput" type="file" accept="image/*" capture="environment">
-            <button class="btn-upload" onclick="uploadImage()">PHÂN TÍCH ẢNH</button>
-            <div class="status" id="uploadStatus">Chọn hoặc chụp ảnh lá lúa để phân tích.</div>
+        <div class="footer">
+            Cloud API: Railway · ESP32 đọc kết quả tại /latest
         </div>
     </div>
 
     <script>
+        const imageInput = document.getElementById('imageInput');
+        const previewBox = document.getElementById('previewBox');
+        const previewImage = document.getElementById('previewImage');
+        const analyzeButton = document.getElementById('analyzeButton');
+
+        imageInput.addEventListener('change', function () {
+            const file = imageInput.files[0];
+
+            if (!file) {
+                previewBox.style.display = 'none';
+                previewImage.src = '';
+                return;
+            }
+
+            previewImage.src = URL.createObjectURL(file);
+            previewBox.style.display = 'block';
+        });
+
+        function updateResultUI(data) {
+            const disease = data.web_message || data.message || 'Chưa có kết quả';
+            const className = data.class_name || '---';
+            const confidence = data.confidence_percent || 0;
+
+            document.getElementById('disease').innerText = disease;
+            document.getElementById('className').innerText = className;
+            document.getElementById('confidence').innerText = confidence + '%';
+
+            const aiStatus = document.getElementById('aiStatus');
+
+            if (!className) {
+                aiStatus.innerText = 'Chưa phân tích';
+                aiStatus.className = 'value neutral';
+            } else if (className === 'healthy') {
+                aiStatus.innerText = 'Lá khỏe mạnh';
+                aiStatus.className = 'value healthy';
+            } else {
+                aiStatus.innerText = 'Cảnh báo bệnh';
+                aiStatus.className = 'value danger';
+            }
+        }
+
         async function loadStatus() {
             try {
                 const res = await fetch('/latest');
                 const data = await res.json();
 
-                document.getElementById('disease').innerText = data.web_message || data.message || 'Chưa có kết quả';
-                document.getElementById('className').innerText = data.class_name || '---';
-                document.getElementById('confidence').innerText = (data.confidence_percent || 0) + '%';
-                document.getElementById('ledMode').innerText = data.led_mode || 'auto';
+                updateResultUI(data);
 
-                document.getElementById('statusText').innerText = 'Đã kết nối server';
+                document.getElementById('statusText').innerText = 'Đã kết nối Cloud';
                 document.getElementById('statusText').className = 'status ok';
-            } catch (err) {
-                document.getElementById('statusText').innerText = 'Không kết nối được server';
-                document.getElementById('statusText').className = 'status danger';
-            }
-        }
 
-        async function setLed(mode) {
-            try {
-                await fetch('/led/' + mode, { method: 'POST' });
-                await loadStatus();
+                document.getElementById('serverBadge').innerText = 'Cloud đang hoạt động';
             } catch (err) {
-                alert('Không gửi được lệnh LED');
+                document.getElementById('statusText').innerText = 'Không kết nối được Cloud';
+                document.getElementById('statusText').className = 'status error';
+
+                document.getElementById('serverBadge').innerText = 'Cloud lỗi kết nối';
             }
         }
 
         async function uploadImage() {
-            const input = document.getElementById('imageInput');
-            const file = input.files[0];
+            const file = imageInput.files[0];
 
             if (!file) {
                 alert('Vui lòng chọn hoặc chụp ảnh trước');
@@ -352,7 +510,10 @@ def mobile_app():
             const formData = new FormData();
             formData.append('file', file);
 
-            document.getElementById('uploadStatus').innerText = 'Đang gửi ảnh lên AI...';
+            analyzeButton.disabled = true;
+            analyzeButton.innerText = 'ĐANG PHÂN TÍCH...';
+
+            document.getElementById('uploadStatus').innerText = 'Đang gửi ảnh lên Cloud AI...';
             document.getElementById('uploadStatus').className = 'status warning';
 
             try {
@@ -364,23 +525,30 @@ def mobile_app():
                 const data = await res.json();
 
                 if (res.ok) {
+                    updateResultUI(data);
+
                     document.getElementById('uploadStatus').innerText =
-                        'Đã phân tích: ' + data.message + ' - ' + data.confidence_percent + '%';
+                        'Phân tích xong: ' + data.message + ' - ' + data.confidence_percent + '%';
                     document.getElementById('uploadStatus').className = 'status ok';
+
                     await loadStatus();
                 } else {
                     document.getElementById('uploadStatus').innerText =
-                        'Lỗi: ' + JSON.stringify(data);
-                    document.getElementById('uploadStatus').className = 'status danger';
+                        'Lỗi server: ' + JSON.stringify(data);
+                    document.getElementById('uploadStatus').className = 'status error';
                 }
             } catch (err) {
-                document.getElementById('uploadStatus').innerText = 'Không gửi được ảnh';
-                document.getElementById('uploadStatus').className = 'status danger';
+                document.getElementById('uploadStatus').innerText =
+                    'Không gửi được ảnh lên Cloud';
+                document.getElementById('uploadStatus').className = 'status error';
             }
+
+            analyzeButton.disabled = false;
+            analyzeButton.innerText = 'PHÂN TÍCH ẢNH';
         }
 
         loadStatus();
-        setInterval(loadStatus, 1000);
+        setInterval(loadStatus, 3000);
     </script>
 </body>
 </html>
